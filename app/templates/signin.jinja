@@ -1,0 +1,18 @@
+{% extends "base.jinja" %}
+
+{% block content %}
+   <h3>Sign In</h3>
+   {{ form.hidden_tag() }}
+   <p>
+        {{ form.email.label }}<br>
+        {{ form.email(size=32) }}
+   </p>
+        {{ form.password.label }}<br>
+        {{ form.password(size=32) }}
+    <p>
+        {{ form.remember_me() }}<br>
+        {{ form.remember_me.label }}
+    </p>
+    <p>
+        {{ form.submit() }} </p>
+{% endblock content %}
