@@ -1,6 +1,8 @@
-from flask import render_template
+from flask import render_template, flash, redirect
+from flask_login import login_user, logout_user
 from app import app
-from app.forms import LoginForm
+from app.forms import LoginForm, RegisterForm
+from app.models import User
 
 @app.route('/')
 def home():
@@ -14,14 +16,42 @@ def home():
     print(matrix_posts['students'])
     return render_template('index.jinja', instructors=matrix_posts['instructors'], students=matrix_posts['students'], title='Fakebook Homepage')
 
-@app.route('/signin')
+@app.route('/signin', methods=['GET', 'POST'])
 def sign_in():
     login_form = LoginForm()
+    if login_form.validate_on_submit():
+        email = login_form.email.data
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(login_form.password.data):
+            login_user(user)
+            flash(f'{login_form.email.data} logged in!', category='success')
+            return redirect('/')
+        else:
+            flash(f'Invalid User Data, Try Again!', category = 'warning')
     return render_template('signin.jinja', form=login_form)
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect('/') 
 
-@app.route('/register')
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    create_account = LoginForm()
-    return render_template('register.jinja', title='Register', form=create_account)
-
+    form = RegisterForm()
+    if form.validate_on_submit():
+      user = {
+            'first_name' : form.first_name.data,
+            'last_name' : form.last_name.data,
+            'username' : form.username.data,
+            'email' : form.email.data
+        }
+    try:
+        user = User(first_name = first_name, last_name = last_name, username = username, email = email)
+        user.hash_password(form.password.data)
+        user.commit()
+        flash(f'{user.first_name if user.first_name else user.username} registerd', category='success')
+        return redirect('/')
+    except:
+            flash(f'Username or Email already taken. Try Again', category = 'warning')
+    return render_template('register.jinja', form=form)
